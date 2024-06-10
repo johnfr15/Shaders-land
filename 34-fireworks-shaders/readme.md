@@ -1,4 +1,6 @@
-# Three.js Journey
+# Fireworks shader
+
+![firework](./img/firework-project.png)
 
 ## Setup
 Download [Node.js](https://nodejs.org/en/download/).

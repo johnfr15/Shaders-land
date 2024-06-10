@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import GUI from 'lil-gui'
-import { threshold } from 'three/examples/jsm/nodes/Nodes.js'
 import fireworkVertexShader from "./shaders/firework/vertex.glsl"
 import fireworkFragmentShader from "./shaders/firework/fragment.glsl"
 import gsap from 'gsap'
@@ -217,9 +216,9 @@ const createFirework = (count, position, size, texture, radius, color) =>
 const createRandomFirework = () => {
     const count = Math.round(400 + Math.random() * 1000);
     const position = new THREE.Vector3(
-        (Math.random() - 0.5) * 2,
-        Math.random(),
-        (Math.random() - 0.5) * 2,
+        (Math.random() - 0.5) * 10,
+        Math.random() * 2,
+        (Math.random() - 0.5) * 10,
     )
     const size = 0.1 + Math.random() * 0.1;
     const texture = textures[Math.floor(Math.random() * textures.length)]
