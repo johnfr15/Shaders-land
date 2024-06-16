@@ -11,9 +11,34 @@ uniform float uClampMin;
 uniform float uClampMax;
 uniform float uRadiusMultiplier;
 
+// Falling uniforms
+uniform float uFallRemapOriginMin;
+uniform float uFallRemapOriginMax;
+uniform float uFallRemapDestinationMin;
+uniform float uFallRemapDestinationMax;
+uniform float uFallClampMin;
+uniform float uFallClampMax;
 uniform float uFallingMultiplier;
+
+// Scaling uniforms
+uniform float uOpeningRemapOriginMin;
+uniform float uOpeningRemapOriginMax;
+uniform float uOpeningRemapDestinationMin;
+uniform float uOpeningRemapDestinationMax;
+uniform float uClosingRemapOriginMin;
+uniform float uClosingRemapOriginMax;
+uniform float uClosingRemapDestinationMin;
+uniform float uClosingRemapDestinationMax;
 uniform float uScaleMultiplier;
 
+// Twinkles uniforms
+uniform float uTwinkleRemapOriginMin;
+uniform float uTwinkleRemapOriginMax;
+uniform float uTwinkleRemapDestinationMin;
+uniform float uTwinkleRemapDestinationMax;
+uniform float uTwinkleClampMin;
+uniform float uTwinkleClampMax;
+uniform float uTwinkleFrequency;
 
 attribute float aSize; 
 attribute float aTimeMultipliers; 
@@ -31,24 +56,24 @@ float explodingAnimation(float progress) {
 }
 
 float fallingAnimation(float progress) {
-    float fallingProgress = remap(progress, 0.1, 1.0, 0.0, 1.0);
-    fallingProgress = clamp(fallingProgress, 0.0, 1.0);
+    float fallingProgress = remap(progress, uFallRemapOriginMin, uFallRemapOriginMax, uFallRemapDestinationMin, uFallRemapDestinationMax);
+    fallingProgress = clamp(fallingProgress, uFallClampMin, uFallClampMax);
     fallingProgress = 1.0 - pow(1.0 - fallingProgress, 3.0);
     
     return fallingProgress * 0.2 * uFallingMultiplier;
 }
 
 float scaleAnimation(float progress) {
-    float sizeOpeningProgress = remap(progress, 0.0, 0.125, 0.0, 1.0 );
-    float sizeClosingProgress = remap(progress, 0.125, 1.0, 1.0, 0.0 );
+    float sizeOpeningProgress = remap(progress, uOpeningRemapOriginMin, uOpeningRemapOriginMax, uOpeningRemapDestinationMin, uOpeningRemapDestinationMax );
+    float sizeClosingProgress = remap(progress, uClosingRemapOriginMin, uClosingRemapOriginMax, uClosingRemapDestinationMin, uClosingRemapDestinationMax );
 
     return min(sizeOpeningProgress, sizeClosingProgress) * uScaleMultiplier;
 }
 
 float twinkleAnimation(float progress) {
-    float twinkleProgress = remap(progress, 0.2, 0.8, 0.0, 1.0);
-    twinkleProgress = clamp(twinkleProgress, 0.0, 1.0);
-    float sizeTwinkle = sin(30.0 * progress) * 0.5 + 0.5;
+    float twinkleProgress = remap(progress, uTwinkleRemapOriginMin, uTwinkleRemapOriginMax, uTwinkleRemapDestinationMin, uTwinkleRemapDestinationMax);
+    twinkleProgress = clamp(twinkleProgress, uTwinkleClampMin, uTwinkleClampMax);
+    float sizeTwinkle = sin(uTwinkleFrequency * progress) * 0.5 + 0.5;
 
     return 1.0 - sizeTwinkle * twinkleProgress;
 }

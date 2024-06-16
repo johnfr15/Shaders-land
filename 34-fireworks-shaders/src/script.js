@@ -96,8 +96,31 @@ const fireworkSettings = {
     clampMax: 1,
     radiusMultiplier: 1,
 
+    fallingRemapOriginMin: 0.1,
+    fallingRemapOriginMax: 1,
+    fallingRemapDestinationMin: 0,
+    fallingRemapDestinationMax: 1,
+    fallingClampMin: 0,
+    fallingClampMax: 1,
     fallingMultiplier: 1,
+
+    openingRemapOriginMin: 0,
+    openingRemapOriginMax: 0.125,
+    openingRemapDestinationMin: 0,
+    openingRemapDestinationMax: 1,
+    closingRemapOriginMin: 0.125,
+    closingRemapOriginMax: 1,
+    closingRemapDestinationMin: 1,
+    closingRemapDestinationMax: 0,
     scalingMultiplier: 1,
+
+    twinkleRemapOriginMin: 0.2,
+    twinkleRemapOriginMax: 0.8,
+    twinkleRemapDestinationMin: 0,
+    twinkleRemapDestinationMax: 1,
+    twinkleClampMin: 0,
+    twinkleClampMax: 1,
+    twinkleFrequency: 30,
 }
 
 // gui
@@ -105,18 +128,47 @@ const fireworksFolder = gui.addFolder("Firework")
 fireworksFolder.add( fireworkSettings, 'particlesSize').min(0).max(100).step(0.1)
 fireworksFolder.add( fireworkSettings, 'duration').min(0).max(30).step(0.1)
 
-const explosionFolder = fireworksFolder.addFolder("explosion")
-explosionFolder.add( fireworkSettings, 'remapOriginMin').min(0).max(5).step(0.01)
-explosionFolder.add( fireworkSettings, 'remapOriginMax').min(0).max(5).step(0.01)
-explosionFolder.add( fireworkSettings, 'remapDestinationMin').min(0).max(5).step(0.01)
-explosionFolder.add( fireworkSettings, 'remapDestinationMax').min(0).max(5).step(0.01)
-explosionFolder.add( fireworkSettings, 'clampMin').min(0).max(5).step(0.01)
-explosionFolder.add( fireworkSettings, 'clampMax').min(0).max(5).step(0.01)
+const explosionFolder = fireworksFolder.addFolder("explosion").close()
+explosionFolder.add( fireworkSettings, 'remapOriginMin').min(0).max(1).step(0.01)
+explosionFolder.add( fireworkSettings, 'remapOriginMax').min(0).max(1).step(0.01)
+explosionFolder.add( fireworkSettings, 'remapDestinationMin').min(0).max(1).step(0.01)
+explosionFolder.add( fireworkSettings, 'remapDestinationMax').min(0).max(1).step(0.01)
+explosionFolder.add( fireworkSettings, 'clampMin').min(0).max(1).step(0.01)
+explosionFolder.add( fireworkSettings, 'clampMax').min(0).max(1).step(0.01)
 explosionFolder.add( fireworkSettings, 'radiusMultiplier').min(0).max(40).step(0.1)
 explosionFolder.add( explosionFolder, 'reset')
 
-fireworksFolder.add( fireworkSettings, 'fallingMultiplier').min(0).max(20).step(0.1)
-fireworksFolder.add( fireworkSettings, 'scalingMultiplier').min(0).max(20).step(0.1)
+const fallingFolder = fireworksFolder.addFolder("falling").close()
+fallingFolder.add( fireworkSettings, 'fallingRemapOriginMin').min(0).max(1).step(0.01)
+fallingFolder.add( fireworkSettings, 'fallingRemapOriginMax').min(0).max(1).step(0.01)
+fallingFolder.add( fireworkSettings, 'fallingRemapDestinationMin').min(0).max(1).step(0.01)
+fallingFolder.add( fireworkSettings, 'fallingRemapDestinationMax').min(0).max(1).step(0.01)
+fallingFolder.add( fireworkSettings, 'fallingClampMin').min(0).max(1).step(0.01)
+fallingFolder.add( fireworkSettings, 'fallingClampMax').min(0).max(1).step(0.01)
+fallingFolder.add( fireworkSettings, 'fallingMultiplier').min(0).max(100).step(1)
+fallingFolder.add( fallingFolder, 'reset')
+
+const scalingFolder = fireworksFolder.addFolder("scaling").close()
+scalingFolder.add( fireworkSettings, 'openingRemapOriginMin').min(0).max(1).step(0.01)
+scalingFolder.add( fireworkSettings, 'openingRemapOriginMax').min(0).max(1).step(0.01)
+scalingFolder.add( fireworkSettings, 'openingRemapDestinationMin').min(0).max(1).step(0.01)
+scalingFolder.add( fireworkSettings, 'openingRemapDestinationMax').min(0).max(1).step(0.01)
+scalingFolder.add( fireworkSettings, 'closingRemapOriginMin').min(0).max(1).step(0.01)
+scalingFolder.add( fireworkSettings, 'closingRemapOriginMax').min(0).max(1).step(0.01)
+scalingFolder.add( fireworkSettings, 'closingRemapDestinationMin').min(0).max(1).step(0.01)
+scalingFolder.add( fireworkSettings, 'closingRemapDestinationMax').min(0).max(1).step(0.01)
+scalingFolder.add( fireworkSettings, 'scalingMultiplier').min(0).max(20).step(0.1)
+scalingFolder.add( scalingFolder, 'reset')
+
+const twinkleFolder = fireworksFolder.addFolder("twinkle").close()
+twinkleFolder.add( fireworkSettings, 'twinkleRemapOriginMin').min(0).max(1).step(0.01)
+twinkleFolder.add( fireworkSettings, 'twinkleRemapOriginMax').min(0).max(1).step(0.01)
+twinkleFolder.add( fireworkSettings, 'twinkleRemapDestinationMin').min(0).max(1).step(0.01)
+twinkleFolder.add( fireworkSettings, 'twinkleRemapDestinationMax').min(0).max(1).step(0.01)
+twinkleFolder.add( fireworkSettings, 'twinkleClampMin').min(0).max(1).step(0.01)
+twinkleFolder.add( fireworkSettings, 'twinkleClampMax').min(0).max(1).step(0.01)
+twinkleFolder.add( fireworkSettings, 'twinkleFrequency').min(0).max(300).step(1)
+twinkleFolder.add( twinkleFolder, 'reset')
 
 const textures = [
     textureLoader.load("/particles/1.png"),
@@ -136,7 +188,6 @@ const createFirework = (count, position, size, texture, radius, color) =>
     const sizeArray = new Float32Array(count);
     const timeMultipliers = new Float32Array(count);
 
-    
     for (let i = 0; i < count*3; i++)
     {
         const i3 = i * 3;
@@ -174,7 +225,8 @@ const createFirework = (count, position, size, texture, radius, color) =>
             uTexture: new THREE.Uniform( texture ),
             uColor: new THREE.Uniform( color ),
             uProgress: new THREE.Uniform( 0 ),
-            
+
+            // explosion
             uRemapOriginMin: new THREE.Uniform( fireworkSettings.remapOriginMin ),
             uRemapOriginMax: new THREE.Uniform( fireworkSettings.remapOriginMax ),
             uRemapDestinationMin: new THREE.Uniform( fireworkSettings.remapOriginMin ),
@@ -183,8 +235,34 @@ const createFirework = (count, position, size, texture, radius, color) =>
             uClampMax: new THREE.Uniform( fireworkSettings.clampMax ),
             uRadiusMultiplier: new THREE.Uniform( fireworkSettings.radiusMultiplier ),
 
+            // fall
+            uFallRemapOriginMin: new THREE.Uniform( fireworkSettings.fallingRemapOriginMin),
+            uFallRemapOriginMax: new THREE.Uniform( fireworkSettings.fallingRemapOriginMax),
+            uFallRemapDestinationMin: new THREE.Uniform( fireworkSettings.fallingRemapDestinationMin),
+            uFallRemapDestinationMax: new THREE.Uniform( fireworkSettings.fallingRemapDestinationMax),
+            uFallClampMin: new THREE.Uniform( fireworkSettings.fallingClampMin),
+            uFallClampMax: new THREE.Uniform( fireworkSettings.fallingClampMax),
             uFallingMultiplier: new THREE.Uniform( fireworkSettings.fallingMultiplier ),
+
+            // scale
+            uOpeningRemapOriginMin: new THREE.Uniform( fireworkSettings.openingRemapOriginMin),
+            uOpeningRemapOriginMax: new THREE.Uniform( fireworkSettings.openingRemapOriginMax),
+            uOpeningRemapDestinationMin: new THREE.Uniform( fireworkSettings.openingRemapDestinationMin),
+            uOpeningRemapDestinationMax: new THREE.Uniform( fireworkSettings.openingRemapDestinationMax),
+            uClosingRemapOriginMin: new THREE.Uniform( fireworkSettings.closingRemapOriginMin),
+            uClosingRemapOriginMax: new THREE.Uniform( fireworkSettings.closingRemapOriginMax),
+            uClosingRemapDestinationMin: new THREE.Uniform( fireworkSettings.closingRemapDestinationMin),
+            uClosingRemapDestinationMax: new THREE.Uniform( fireworkSettings.closingRemapDestinationMax),
             uScaleMultiplier: new THREE.Uniform( fireworkSettings.scalingMultiplier ),
+
+            // twinkle
+            uTwinkleRemapOriginMin: new THREE.Uniform( fireworkSettings.twinkleRemapOriginMin),
+            uTwinkleRemapOriginMax: new THREE.Uniform( fireworkSettings.twinkleRemapOriginMax),
+            uTwinkleRemapDestinationMin: new THREE.Uniform( fireworkSettings.twinkleRemapDestinationMin),
+            uTwinkleRemapDestinationMax: new THREE.Uniform( fireworkSettings.twinkleRemapDestinationMax),
+            uTwinkleClampMin: new THREE.Uniform( fireworkSettings.twinkleClampMin),
+            uTwinkleClampMax: new THREE.Uniform( fireworkSettings.twinkleClampMax),
+            uTwinkleFrequency: new THREE.Uniform( fireworkSettings.twinkleFrequency ),
         },
         depthWrite: false,
         blending: THREE.AdditiveBlending,
@@ -292,7 +370,6 @@ function initSky() {
 
 }
 initSky()
-
 
 
 /**
