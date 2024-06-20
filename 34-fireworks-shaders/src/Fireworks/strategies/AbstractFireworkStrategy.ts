@@ -62,7 +62,7 @@ abstract class AbstractFireworkStrategy implements IFireworkStrategy {
     /***********************************|
     |              EVENTS               |
     |__________________________________*/
-    private _onMouseClick = (e: MouseEvent) => 
+    private _onMouseClick(e: MouseEvent)
     {
         // Define the position of the mouse on our screen (0, 0) being the middle 
         const x = (e.clientX / window.innerWidth) * 2 - 1; // A value between -1 and 1
@@ -71,7 +71,7 @@ abstract class AbstractFireworkStrategy implements IFireworkStrategy {
         this._mouseCoord = new THREE.Vector2(x, y);
     };
 
-    private _onWindowResize = () => 
+    private _onWindowResize() 
     {
         this._window.width = window.innerWidth;
         this._window.height = window.innerHeight;
