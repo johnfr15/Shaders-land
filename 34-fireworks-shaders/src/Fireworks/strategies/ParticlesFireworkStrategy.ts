@@ -6,7 +6,6 @@ import { FireworkMode } from '../types.ts/index.ts';
 import fireworkVertexShader from "../shaders/particle/vertex.glsl";
 import fireworkFragmentShader from "../shaders/particle/fragment.glsl";
 import Firework from '../Firework.ts';
-import { Window } from '../types.ts/index.ts';
 import particles1 from '../assets/particles/1.png';
 import particles2 from '../assets/particles/2.png';
 import particles3 from '../assets/particles/3.png';
@@ -27,9 +26,7 @@ import particles8 from '../assets/particles/8.png';
 class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
     private _fireworkSettings!: {[key: string]: number}
     private _textures!: THREE.Texture[];
-    private _window!: Window;
-    private _gui: GUI;
-    private _mouse: THREE.Vector2
+    private _gui!: GUI;
 
 
 
@@ -42,16 +39,7 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
     {
         super(context)
 
-        this._gui = context.gui;
-        this._mouse = new THREE.Vector2(1000, 1000)
-
-        this._init()
-    }
-
-    private _init = () => 
-    {
         this._initSettings();
-        this._initWindow();
         this._initGui();
         this._loadTextures();
     }
@@ -100,33 +88,17 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
         }
     }
 
-    private _initWindow = (): void => 
-    {
-        const _window: Window = {
-            width: window.innerWidth,
-            height: window.innerHeight,
-            pixelRatio: Math.min(window.devicePixelRatio, 2),
-            resolution: new THREE.Vector2()
-        }
-        _window.resolution.set(
-            _window.width * _window.pixelRatio, 
-            _window.height * _window.pixelRatio
-        )
-
-        this._window = _window
-    }
-
     private _initGui(): void 
     {
-        const fireworksFolder = this._gui.addFolder("Default firework").close()
-        fireworksFolder.add( this._fireworkSettings, 'particlesSize').min(0).max(100).step(0.1)
-        fireworksFolder.add( this._fireworkSettings, 'duration').min(0).max(30).step(0.1)
-        fireworksFolder.add( this, 'mode', ['Random', 'Mouse']).name("Modes").onChange((m: string) => {
-            if (m === 'Random') this.mode = FireworkMode.RANDOM
-            if (m === 'Mouse') this.mode = FireworkMode.MOUSE
+        this._gui = this._GUI.addFolder("Default firework").close()
+        this._gui.add( this._fireworkSettings, 'particlesSize').min(0).max(100).step(0.1)
+        this._gui.add( this._fireworkSettings, 'duration').min(0).max(30).step(0.1)
+        this._gui.add( this, 'mode', ['Random', 'Mouse']).name("Modes").onChange((m: string) => {
+            if (m === 'Random') this._mode = FireworkMode.RANDOM
+            if (m === 'Mouse') this._mode = FireworkMode.MOUSE
         })
         
-        const explosionFolder = fireworksFolder.addFolder("explosion").close()
+        const explosionFolder = this._gui.addFolder("explosion").close()
         explosionFolder.add( this._fireworkSettings, 'remapOriginMin').min(0).max(1).step(0.01)
         explosionFolder.add( this._fireworkSettings, 'remapOriginMax').min(0).max(1).step(0.01)
         explosionFolder.add( this._fireworkSettings, 'remapDestinationMin').min(0).max(1).step(0.01)
@@ -136,7 +108,7 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
         explosionFolder.add( this._fireworkSettings, 'radiusMultiplier').min(0).max(40).step(0.1)
         explosionFolder.add( explosionFolder, 'reset')
         
-        const fallingFolder = fireworksFolder.addFolder("falling").close()
+        const fallingFolder = this._gui.addFolder("falling").close()
         fallingFolder.add( this._fireworkSettings, 'fallingRemapOriginMin').min(0).max(1).step(0.01)
         fallingFolder.add( this._fireworkSettings, 'fallingRemapOriginMax').min(0).max(1).step(0.01)
         fallingFolder.add( this._fireworkSettings, 'fallingRemapDestinationMin').min(0).max(1).step(0.01)
@@ -146,7 +118,7 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
         fallingFolder.add( this._fireworkSettings, 'fallingMultiplier').min(0).max(100).step(1)
         fallingFolder.add( fallingFolder, 'reset')
         
-        const scalingFolder = fireworksFolder.addFolder("scaling").close()
+        const scalingFolder = this._gui.addFolder("scaling").close()
         scalingFolder.add( this._fireworkSettings, 'openingRemapOriginMin').min(0).max(1).step(0.01)
         scalingFolder.add( this._fireworkSettings, 'openingRemapOriginMax').min(0).max(1).step(0.01)
         scalingFolder.add( this._fireworkSettings, 'openingRemapDestinationMin').min(0).max(1).step(0.01)
@@ -158,7 +130,7 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
         scalingFolder.add( this._fireworkSettings, 'scalingMultiplier').min(0).max(20).step(0.1)
         scalingFolder.add( scalingFolder, 'reset')
         
-        const twinkleFolder = fireworksFolder.addFolder("twinkle").close()
+        const twinkleFolder = this._gui.addFolder("twinkle").close()
         twinkleFolder.add( this._fireworkSettings, 'twinkleRemapOriginMin').min(0).max(1).step(0.01)
         twinkleFolder.add( this._fireworkSettings, 'twinkleRemapOriginMax').min(0).max(1).step(0.01)
         twinkleFolder.add( this._fireworkSettings, 'twinkleRemapDestinationMin').min(0).max(1).step(0.01)
@@ -184,38 +156,6 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
             textureLoader.load(particles8),
         ]
     }
-
-
-
-
-
-
-
-
-
-
-    /***********************************|
-    |              EVENTS               |
-    |__________________________________*/
-    private _onMouseClick = (e: MouseEvent) => 
-    {
-        const x = (e.clientX / window.innerWidth) * 2 - 1;
-        const y = - (e.clientY / window.innerHeight) * 2 + 1;
-    
-        this._mouse = new THREE.Vector2(x, y)
-    };
-
-    private _onWindowResize = () => 
-    {
-        this._window.width = window.innerWidth;
-        this._window.height = window.innerHeight;
-        this._window.pixelRatio = Math.min(window.devicePixelRatio, 2)
-        this._window.resolution.set(
-            this._window.width * this._window.pixelRatio, 
-            this._window.height * this._window.pixelRatio
-        )
-        console.log("resized")
-    };
 
 
 
@@ -315,10 +255,10 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
 
         const firework = new THREE.Points(geometry, material);
         firework.position.copy(position);
-        this.scene.add(firework);
+        this._scene.add(firework);
 
         const destroy = () => {
-            this.scene.remove(firework);
+            this._scene.remove(firework);
             geometry.dispose();
             material.dispose();
             console.log("Destroy");
@@ -351,7 +291,7 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
     private _createMouseFirework = () => {
         const count = Math.round(400 + Math.random() * 1000);
         const raycaster = new THREE.Raycaster(); 
-        raycaster.setFromCamera(this._mouse, this.camera);
+        raycaster.setFromCamera(this._mouseCoord, this._camera);
         const distance = 50; // Get an arbitrary point on the ray at a specific distance from the camera
         const arbitraryPoint = raycaster.ray.at(Math.random() * distance, new THREE.Vector3());
         const size = 0.1 + Math.random() * 0.1;
@@ -377,26 +317,23 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
     |__________________________________*/
     public turnOn = (): void => 
     {
-        window.addEventListener('click', this._onMouseClick)
-        window.addEventListener('resize', this._onWindowResize);
+        super.turnOn();
     }
 
     public turnOff = (): void => 
     {
-        window.removeEventListener('click', this._onMouseClick);
-        window.removeEventListener('resize', this._onWindowResize);
+        super.turnOff();
     }
 
     public changeMode = (mode: FireworkMode): void => 
     {
-        this.mode = mode
-        console.log("mode", mode)
+        super.changeMode(mode);
     };
 
     public trigger = () => 
     {
-        if ( this.mode === FireworkMode.RANDOM ) this._createRandomFirework()
-        if ( this.mode === FireworkMode.MOUSE ) this._createMouseFirework()
+        if ( this._mode === FireworkMode.RANDOM ) this._createRandomFirework()
+        if ( this._mode === FireworkMode.MOUSE ) this._createMouseFirework()
     }
 }
 

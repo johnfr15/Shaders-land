@@ -6,7 +6,6 @@ import { FireworkMode } from '../types.ts';
 import fireworkVertexShader from "../shaders/point/vertex.glsl";
 import fireworkFragmentShader from "../shaders/point/fragment.glsl";
 import Firework from '../Firework';
-import { Window } from '../types.ts';
 
 /**
  * Table of contents
@@ -18,9 +17,7 @@ import { Window } from '../types.ts';
  */
 class PointFireworkStrategy extends AbstractFireworkStrategy {
     private _fireworkSettings!: {[key: string]: number | string | boolean}
-    private _window!: Window;
-    private _gui: GUI;
-    private _mouseCoord: THREE.Vector2
+    private _gui!: GUI;
 
 
 
@@ -33,16 +30,7 @@ class PointFireworkStrategy extends AbstractFireworkStrategy {
     {
         super(context)
 
-        this._gui = context.gui;
-        this._mouseCoord = new THREE.Vector2(0, 0)
-
-        this._init()
-    }
-
-    private _init = () => 
-    {
         this._initSettings();
-        this._initWindow();
         this._initGui();
     }
 
@@ -92,35 +80,20 @@ class PointFireworkStrategy extends AbstractFireworkStrategy {
         }
     }
 
-    private _initWindow = (): void => 
-    {
-        const _window: Window = {
-            width: window.innerWidth,
-            height: window.innerHeight,
-            pixelRatio: Math.min(window.devicePixelRatio, 2),
-            resolution: new THREE.Vector2()
-        }
-        _window.resolution.set(
-            _window.width * _window.pixelRatio, 
-            _window.height * _window.pixelRatio
-        )
-
-        this._window = _window
-    }
 
     private _initGui(): void 
     {
-        const fireworksFolder = this._gui.addFolder("Default firework").close()
-        fireworksFolder.add( this._fireworkSettings, 'particlesSize').min(0).max(100).step(0.1)
-        fireworksFolder.add( this._fireworkSettings, 'randomParticlesColor')
-        fireworksFolder.addColor( this._fireworkSettings, 'particlesColor').onChange((c: any) => this._fireworkSettings.particlesColor = c)
-        fireworksFolder.add( this._fireworkSettings, 'duration').min(0).max(30).step(0.1)
-        fireworksFolder.add( this, 'mode', ['Random', 'Mouse']).name("Modes").onChange((m: string) => {
-            if (m === 'Random') this.mode = FireworkMode.RANDOM
-            if (m === 'Mouse') this.mode = FireworkMode.MOUSE
+        this._gui = this._GUI.addFolder("Default firework").close()
+        this._gui.add( this._fireworkSettings, 'particlesSize').min(0).max(100).step(0.1)
+        this._gui.add( this._fireworkSettings, 'randomParticlesColor')
+        this._gui.addColor( this._fireworkSettings, 'particlesColor').onChange((c: any) => this._fireworkSettings.particlesColor = c)
+        this._gui.add( this._fireworkSettings, 'duration').min(0).max(30).step(0.1)
+        this._gui.add( this, 'mode', ['Random', 'Mouse']).name("Modes").onChange((m: string) => {
+            if (m === 'Random') this._mode = FireworkMode.RANDOM
+            if (m === 'Mouse') this._mode = FireworkMode.MOUSE
         })
         
-        const explosionFolder = fireworksFolder.addFolder("explosion").close()
+        const explosionFolder = this._gui.addFolder("explosion").close()
         explosionFolder.add( this._fireworkSettings, 'remapOriginMin').min(0).max(1).step(0.01)
         explosionFolder.add( this._fireworkSettings, 'remapOriginMax').min(0).max(1).step(0.01)
         explosionFolder.add( this._fireworkSettings, 'remapDestinationMin').min(0).max(1).step(0.01)
@@ -130,7 +103,7 @@ class PointFireworkStrategy extends AbstractFireworkStrategy {
         explosionFolder.add( this._fireworkSettings, 'radiusMultiplier').min(0).max(40).step(0.1)
         explosionFolder.add( explosionFolder, 'reset')
         
-        const fallingFolder = fireworksFolder.addFolder("falling").close()
+        const fallingFolder = this._gui.addFolder("falling").close()
         fallingFolder.add( this._fireworkSettings, 'fallingRemapOriginMin').min(0).max(1).step(0.01)
         fallingFolder.add( this._fireworkSettings, 'fallingRemapOriginMax').min(0).max(1).step(0.01)
         fallingFolder.add( this._fireworkSettings, 'fallingRemapDestinationMin').min(0).max(1).step(0.01)
@@ -140,7 +113,7 @@ class PointFireworkStrategy extends AbstractFireworkStrategy {
         fallingFolder.add( this._fireworkSettings, 'fallingMultiplier').min(0).max(100).step(1)
         fallingFolder.add( fallingFolder, 'reset')
         
-        const scalingFolder = fireworksFolder.addFolder("scaling").close()
+        const scalingFolder = this._gui.addFolder("scaling").close()
         scalingFolder.add( this._fireworkSettings, 'openingRemapOriginMin').min(0).max(1).step(0.01)
         scalingFolder.add( this._fireworkSettings, 'openingRemapOriginMax').min(0).max(1).step(0.01)
         scalingFolder.add( this._fireworkSettings, 'openingRemapDestinationMin').min(0).max(1).step(0.01)
@@ -152,7 +125,7 @@ class PointFireworkStrategy extends AbstractFireworkStrategy {
         scalingFolder.add( this._fireworkSettings, 'scalingMultiplier').min(0).max(20).step(0.1)
         scalingFolder.add( scalingFolder, 'reset')
         
-        const twinkleFolder = fireworksFolder.addFolder("twinkle").close()
+        const twinkleFolder = this._gui.addFolder("twinkle").close()
         twinkleFolder.add( this._fireworkSettings, 'twinkleRemapOriginMin').min(0).max(1).step(0.01)
         twinkleFolder.add( this._fireworkSettings, 'twinkleRemapOriginMax').min(0).max(1).step(0.01)
         twinkleFolder.add( this._fireworkSettings, 'twinkleRemapDestinationMin').min(0).max(1).step(0.01)
@@ -162,39 +135,6 @@ class PointFireworkStrategy extends AbstractFireworkStrategy {
         twinkleFolder.add( this._fireworkSettings, 'twinkleFrequency').min(0).max(300).step(1)
         twinkleFolder.add( twinkleFolder, 'reset')
     }
-
-
-
-
-
-
-
-
-
-
-    /***********************************|
-    |              EVENTS               |
-    |__________________________________*/
-    private _onMouseClick = (e: MouseEvent) => 
-    {
-        // Define the position of the mouse on our screen (0, 0) being the middle 
-        const x = (e.clientX / window.innerWidth) * 2 - 1; // A value between -1 and 1
-        const y = - (e.clientY / window.innerHeight) * 2 + 1; // A value between -1 and 1
-
-        this._mouseCoord = new THREE.Vector2(x, y)
-    };
-
-    private _onWindowResize = () => 
-    {
-        this._window.width = window.innerWidth;
-        this._window.height = window.innerHeight;
-        this._window.pixelRatio = Math.min(window.devicePixelRatio, 2)
-        this._window.resolution.set(
-            this._window.width * this._window.pixelRatio, 
-            this._window.height * this._window.pixelRatio
-        )
-        console.log("resized")
-    };
 
 
 
@@ -289,10 +229,10 @@ class PointFireworkStrategy extends AbstractFireworkStrategy {
 
         const firework = new THREE.Points(geometry, material);
         firework.position.copy(position);
-        this.scene.add(firework);
+        this._scene.add(firework);
 
         const destroy = () => {
-            this.scene.remove(firework);
+            this._scene.remove(firework);
             geometry.dispose();
             material.dispose();
             console.log("Destroy");
@@ -332,7 +272,7 @@ class PointFireworkStrategy extends AbstractFireworkStrategy {
 
         const count = Math.round(400 + Math.random() * 1000);
         const raycaster = new THREE.Raycaster(); 
-        raycaster.setFromCamera(this._mouseCoord, this.camera);
+        raycaster.setFromCamera(this._mouseCoord, this._camera);
         const distance = 50; // Get an arbitrary point on the ray at a specific distance from the camera
         const arbitraryPoint = raycaster.ray.at(Math.random() * distance, new THREE.Vector3());
         const size = 0.1 + Math.random() * 0.1;
@@ -360,26 +300,23 @@ class PointFireworkStrategy extends AbstractFireworkStrategy {
     |__________________________________*/
     public turnOn = (): void => 
     {
-        window.addEventListener('click', this._onMouseClick, { capture: true }) // With capture set to true it make sure this event is trigger before any other on "click" events
-        window.addEventListener('resize', this._onWindowResize);
+        super.turnOn();   
     }
 
     public turnOff = (): void => 
     {
-        window.removeEventListener('click', this._onMouseClick);
-        window.removeEventListener('resize', this._onWindowResize);
+        super.turnOn();
     }
 
     public changeMode = (mode: FireworkMode): void => 
     {
-        this.mode = mode
-        console.log("mode", mode)
+        super.changeMode(mode);
     };
 
     public trigger = () => 
     {
-        if ( this.mode === FireworkMode.RANDOM ) this._createRandomFirework()
-        if ( this.mode === FireworkMode.MOUSE ) this._createMouseFirework()
+        if ( this._mode === FireworkMode.RANDOM ) this._createRandomFirework()
+        if ( this._mode === FireworkMode.MOUSE ) this._createMouseFirework()
     }
 }
 
