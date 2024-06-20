@@ -3,6 +3,9 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import GUI from 'lil-gui'
 import { Sky } from 'three/addons/objects/Sky.js';
 import Firework from "./Fireworks/Firework"
+import ImageFireworkStrategy from './Fireworks/strategies/ImageFireworkStrategy'
+import ParticlesFireworkStrategy from './Fireworks/strategies/ParticlesFireworkStrategy';
+import PointFireworkStrategy from "./Fireworks/strategies/PointFireworkStrategy"
 
 /**
  * Base
@@ -79,8 +82,15 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 const firework = new Firework({scene: scene, window: sizes, camera: camera}, gui)
 window.firework = firework
-
 window.addEventListener("click", firework.trigger)
+
+// Point strategy
+const pointStrategy = new PointFireworkStrategy(firework)
+firework.changeStrategy(pointStrategy)
+
+// Cat strategy
+const catStrategy = new ImageFireworkStrategy(firework)
+firework.changeStrategy(catStrategy)
 
 
 /**

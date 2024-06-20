@@ -1,7 +1,7 @@
 import IFireworkStrategy from './interfaces/IFireworkStrategy';
 import IFirework from "./interfaces/IFirework";
 import { World, FireworkMode } from './types.ts';
-import { DefaultFireworkStrategy } from './strategies/DefaultFireworkStrategy';
+import ParticlesFireworkStrategy from './strategies/ParticlesFireworkStrategy.ts';
 import GUI from "lil-gui";
 
 
@@ -18,7 +18,7 @@ class Firework implements IFirework {
         this.world = world
         this.gui = gui || new GUI({ width: 340 })
 
-        this.defaultStrategy = new DefaultFireworkStrategy(this);
+        this.defaultStrategy = new ParticlesFireworkStrategy(this);
         this._strategy = this.defaultStrategy;
         this._strategy.turnOn();
     }
