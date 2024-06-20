@@ -48,7 +48,7 @@ attribute float aTimeMultipliers;
 // Animation of particles explosion
 // This will define how far particles will explodes
 float explodingAnimation(float progress) {
-    float explodingProgress = remap(progress, uRemapOriginMin, uRemapOriginMax, uClampMin, uClampMax);
+    float explodingProgress = remap(progress, uRemapOriginMin, uRemapOriginMax, uRemapDestinationMin, uRemapDestinationMax);
     explodingProgress = clamp(explodingProgress, uClampMin, uClampMax);
     explodingProgress = 1.0 - pow(1.0 - explodingProgress, 3.0);
 

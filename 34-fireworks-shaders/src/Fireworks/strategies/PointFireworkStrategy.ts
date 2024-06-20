@@ -250,8 +250,8 @@ class PointFireworkStrategy extends AbstractFireworkStrategy {
                 // explosion
                 uRemapOriginMin: new THREE.Uniform(this._fireworkSettings.remapOriginMin),
                 uRemapOriginMax: new THREE.Uniform(this._fireworkSettings.remapOriginMax),
-                uRemapDestinationMin: new THREE.Uniform(this._fireworkSettings.remapOriginMin),
-                uRemapDestinationMax: new THREE.Uniform(this._fireworkSettings.remapOriginMax),
+                uRemapDestinationMin: new THREE.Uniform(this._fireworkSettings.remapDestinationMin),
+                uRemapDestinationMax: new THREE.Uniform(this._fireworkSettings.remapDestinationMax),
                 uClampMin: new THREE.Uniform(this._fireworkSettings.clampMin),
                 uClampMax: new THREE.Uniform(this._fireworkSettings.clampMax),
                 uRadiusMultiplier: new THREE.Uniform(this._fireworkSettings.radiusMultiplier),
