@@ -70,13 +70,8 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
         
             // Explosion uniforms
             // To understand exploding values => https://threejs-journey.com/lessons/fireworks-shaders#exploding 
-            remapOriginMin: 0,
-            remapOriginMax: 0.1,
-            remapDestinationMin: 0,
-            remapDestinationMax: 1,
-            clampMin: 0,
-            clampMax: 1,
-            radiusMultiplier: 1,
+            smoothProgressMin: 0,
+            smoothProgressMax: 0.1,
         
             fallingRemapOriginMin: 0.1,
             fallingRemapOriginMax: 1,
@@ -90,7 +85,7 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
             openingRemapOriginMax: 0.125,
             openingRemapDestinationMin: 0,
             openingRemapDestinationMax: 1,
-            closingRemapOriginMin: 0.125,
+            closingRemapOriginMin: 0.5,
             closingRemapOriginMax: 1,
             closingRemapDestinationMin: 1,
             closingRemapDestinationMax: 0,
@@ -136,13 +131,8 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
         })
         
         const explosionFolder = fireworksFolder.addFolder("explosion").close()
-        explosionFolder.add( this._fireworkSettings, 'remapOriginMin').min(0).max(1).step(0.01)
-        explosionFolder.add( this._fireworkSettings, 'remapOriginMax').min(0).max(1).step(0.01)
-        explosionFolder.add( this._fireworkSettings, 'remapDestinationMin').min(0).max(1).step(0.01)
-        explosionFolder.add( this._fireworkSettings, 'remapDestinationMax').min(0).max(1).step(0.01)
-        explosionFolder.add( this._fireworkSettings, 'clampMin').min(0).max(1).step(0.01)
-        explosionFolder.add( this._fireworkSettings, 'clampMax').min(0).max(1).step(0.01)
-        explosionFolder.add( this._fireworkSettings, 'radiusMultiplier').min(0).max(40).step(0.1)
+        explosionFolder.add( this._fireworkSettings, 'smoothProgressMin').min(0).max(1).step(0.01)
+        explosionFolder.add( this._fireworkSettings, 'smoothProgressMax').min(0).max(1).step(0.01)
         explosionFolder.add( explosionFolder, 'reset')
         
         const fallingFolder = fireworksFolder.addFolder("falling").close()
@@ -239,11 +229,22 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
     |              PRIVATE              |
     |__________________________________*/
     private _createFirework( position: THREE.Vector3, texture: THREE.Texture) {
-        let particlesNumber = { value: 128 }
-        const geometry = new THREE.PlaneGeometry(2, 2, particlesNumber.value, particlesNumber.value)
+        const geometry = new THREE.PlaneGeometry(2, 2, 128, 128)
+        const count = geometry.attributes.position.count
+        const aTargetPosition = geometry.attributes.position
+
+        const positionArray = new Float32Array(count * 3).fill(0);
+        const timeMultipliers = new Float32Array(count);
+
+        for (let i = 0; i < count; i++)
+            timeMultipliers[i] = 1 + Math.random();
+        
         geometry.setIndex(null)
         geometry.deleteAttribute("normal")
-        
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positionArray, 3));
+        geometry.setAttribute('aTargetPosition', aTargetPosition);
+        geometry.setAttribute('aTimeMultipliers', new THREE.Float32BufferAttribute(timeMultipliers, 1));
+
         texture.colorSpace = THREE.SRGBColorSpace
 
         const material = new THREE.ShaderMaterial({
@@ -251,13 +252,48 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
             fragmentShader: fireworkFragmentShader,
             uniforms:
             {
+                // Both 
+                uPictureTexture: new THREE.Uniform(texture),
+
+
+                // Vertex
                 uResolution: new THREE.Uniform(this._window.resolution),
+                uProgress: new THREE.Uniform(0),
+                // explosion
+                uSmoothProgressMin: new THREE.Uniform(this._fireworkSettings.smoothProgressMin),
+                uSmoothProgressMax: new THREE.Uniform(this._fireworkSettings.smoothProgressMax),
+                // fall
+                uFallRemapOriginMin: new THREE.Uniform(this._fireworkSettings.fallingRemapOriginMin),
+                uFallRemapOriginMax: new THREE.Uniform(this._fireworkSettings.fallingRemapOriginMax),
+                uFallRemapDestinationMin: new THREE.Uniform(this._fireworkSettings.fallingRemapDestinationMin),
+                uFallRemapDestinationMax: new THREE.Uniform(this._fireworkSettings.fallingRemapDestinationMax),
+                uFallClampMin: new THREE.Uniform(this._fireworkSettings.fallingClampMin),
+                uFallClampMax: new THREE.Uniform(this._fireworkSettings.fallingClampMax),
+                uFallingMultiplier: new THREE.Uniform(this._fireworkSettings.fallingMultiplier),
+                // scale
+                uOpeningRemapOriginMin: new THREE.Uniform(this._fireworkSettings.openingRemapOriginMin),
+                uOpeningRemapOriginMax: new THREE.Uniform(this._fireworkSettings.openingRemapOriginMax),
+                uOpeningRemapDestinationMin: new THREE.Uniform(this._fireworkSettings.openingRemapDestinationMin),
+                uOpeningRemapDestinationMax: new THREE.Uniform(this._fireworkSettings.openingRemapDestinationMax),
+                uClosingRemapOriginMin: new THREE.Uniform(this._fireworkSettings.closingRemapOriginMin),
+                uClosingRemapOriginMax: new THREE.Uniform(this._fireworkSettings.closingRemapOriginMax),
+                uClosingRemapDestinationMin: new THREE.Uniform(this._fireworkSettings.closingRemapDestinationMin),
+                uClosingRemapDestinationMax: new THREE.Uniform(this._fireworkSettings.closingRemapDestinationMax),
+                uScaleMultiplier: new THREE.Uniform(this._fireworkSettings.scalingMultiplier),
+                // twinkle
+                uTwinkleRemapOriginMin: new THREE.Uniform(this._fireworkSettings.twinkleRemapOriginMin),
+                uTwinkleRemapOriginMax: new THREE.Uniform(this._fireworkSettings.twinkleRemapOriginMax),
+                uTwinkleRemapDestinationMin: new THREE.Uniform(this._fireworkSettings.twinkleRemapDestinationMin),
+                uTwinkleRemapDestinationMax: new THREE.Uniform(this._fireworkSettings.twinkleRemapDestinationMax),
+                uTwinkleClampMin: new THREE.Uniform(this._fireworkSettings.twinkleClampMin),
+                uTwinkleClampMax: new THREE.Uniform(this._fireworkSettings.twinkleClampMax),
+                uTwinkleFrequency: new THREE.Uniform(this._fireworkSettings.twinkleFrequency),
+
+                
+                // Fragment
+                uActiveColor: new THREE.Uniform(this._fireworkSettings.activeColor),
                 uColor: new THREE.Uniform( new THREE.Color(this._fireworkSettings.color as string) ),
                 uColorMixFactor: new THREE.Uniform( this._fireworkSettings.colorMixFactor ),
-                uActiveColor: new THREE.Uniform(this._fireworkSettings.activeColor),
-                uPictureTexture: new THREE.Uniform(texture),
-                uProgress: new THREE.Uniform(0),
-                uPictureIntensityMul: new THREE.Uniform(2),
             },
             depthWrite: false,
             transparent: true
@@ -299,7 +335,7 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
         raycaster.setFromCamera(this._mouse, this.context.world.camera);
         const distance = 50; // Get an arbitrary point on the ray at a specific distance from the camera
         const arbitraryPoint = raycaster.ray.at(Math.random() * distance, new THREE.Vector3());
-        const texture = this._textures[1]
+        const texture = this._textures[Math.floor(Math.random() * this._textures.length)]
 
         this._createFirework(arbitraryPoint, texture);
     }
@@ -318,7 +354,7 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
     |__________________________________*/
     public turnOn = (): void => 
     {
-        window.addEventListener('click', this._onMouseClick)
+        window.addEventListener('click', this._onMouseClick, { capture: true })
         window.addEventListener('resize', this._onWindowResize);
     }
 
