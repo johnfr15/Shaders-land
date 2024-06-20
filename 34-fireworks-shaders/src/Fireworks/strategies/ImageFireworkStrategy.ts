@@ -1,12 +1,23 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
 import GUI from 'lil-gui';
-import AbstractFireworkStrategy from './AbstractFireworkStrategy';
-import { FireworkMode } from '../types.ts';
-import fireworkVertexShader from "../shaders/firework/vertex.glsl";
-import fireworkFragmentShader from "../shaders/firework/fragment.glsl";
-import Firework from '../Firework';
-import { Window } from '../types.ts';
+import AbstractFireworkStrategy from './AbstractFireworkStrategy.ts';
+import { FireworkMode } from '../types.ts/index.ts';
+import fireworkVertexShader from "../shaders/image/vertex.glsl";
+import fireworkFragmentShader from "../shaders/image/fragment.glsl";
+import Firework from '../Firework.ts';
+import { Window } from '../types.ts/index.ts';
+
+import defaultImage1 from "../assets/cats/1.png";
+import defaultImage2 from "../assets/cats/2.png";
+import defaultImage3 from "../assets/cats/3.png";
+import defaultImage4 from "../assets/cats/4.png";
+import defaultImage5 from "../assets/cats/5.png";
+import defaultImage6 from "../assets/cats/6.png";
+import defaultImage7 from "../assets/cats/7.png";
+import defaultImage8 from "../assets/cats/8.png";
+import defaultImage9 from "../assets/cats/9.png";
+import defaultImage10 from "../assets/cats/10.png";
 
 /**
  * Table of contents
@@ -16,8 +27,8 @@ import { Window } from '../types.ts';
  *  - PRIVATE:      Internal functions that serve public API.
  *  - PUBLIC:       Functions callable from external.
  */
-export class DefaultFireworkStrategy extends AbstractFireworkStrategy {
-    private _fireworkSettings!: {[key: string]: number}
+class ImageFireworkStrategy extends AbstractFireworkStrategy {
+    private _fireworkSettings!: {[key: string]: number | string | boolean}
     private _textures!: THREE.Texture[];
     private _window!: Window;
     private _gui: GUI;
@@ -52,6 +63,9 @@ export class DefaultFireworkStrategy extends AbstractFireworkStrategy {
     {
         this._fireworkSettings = {
             particlesSize: 1,
+            activeColor: false,
+            color: "#ff0000",
+            colorMixFactor: 0.5,
             duration: 3,
         
             // Explosion uniforms
@@ -110,8 +124,11 @@ export class DefaultFireworkStrategy extends AbstractFireworkStrategy {
 
     private _initGui(): void 
     {
-        const fireworksFolder = this._gui.addFolder("Default firework")
+        const fireworksFolder = this._gui.addFolder("Cat firework").close()
         fireworksFolder.add( this._fireworkSettings, 'particlesSize').min(0).max(100).step(0.1)
+        fireworksFolder.add( this._fireworkSettings, 'activeColor')
+        fireworksFolder.addColor( this._fireworkSettings, 'color').onChange((c: any) => this._fireworkSettings.color = c)
+        fireworksFolder.add( this._fireworkSettings, 'colorMixFactor').min(0).max(1).step(0.01)
         fireworksFolder.add( this._fireworkSettings, 'duration').min(0).max(30).step(0.1)
         fireworksFolder.add( this, 'mode', ['Random', 'Mouse']).name("Modes").onChange((m: string) => {
             if (m === 'Random') this.mode = FireworkMode.RANDOM
@@ -164,14 +181,16 @@ export class DefaultFireworkStrategy extends AbstractFireworkStrategy {
     private _loadTextures() 
     {
         this._textures = [
-            this.textureLoader.load("/particles/1.png"),
-            this.textureLoader.load("/particles/2.png"),
-            this.textureLoader.load("/particles/3.png"),
-            this.textureLoader.load("/particles/4.png"),
-            this.textureLoader.load("/particles/5.png"),
-            this.textureLoader.load("/particles/6.png"),
-            this.textureLoader.load("/particles/7.png"),
-            this.textureLoader.load("/particles/8.png"),
+            this.textureLoader.load(defaultImage1),
+            this.textureLoader.load(defaultImage2),
+            this.textureLoader.load(defaultImage3),
+            this.textureLoader.load(defaultImage4),
+            this.textureLoader.load(defaultImage5),
+            this.textureLoader.load(defaultImage6),
+            this.textureLoader.load(defaultImage7),
+            this.textureLoader.load(defaultImage8),
+            this.textureLoader.load(defaultImage9),
+            this.textureLoader.load(defaultImage10),
         ]
     }
 
@@ -219,91 +238,32 @@ export class DefaultFireworkStrategy extends AbstractFireworkStrategy {
     /***********************************|
     |              PRIVATE              |
     |__________________________________*/
-    private _createFirework(count: number, position: THREE.Vector3, size: number, texture: THREE.Texture, radius: number, color: THREE.Color) {
-        const positionArray = new Float32Array(count * 3);
-        const sizeArray = new Float32Array(count);
-        const timeMultipliers = new Float32Array(count);
+    private _createFirework( position: THREE.Vector3, texture: THREE.Texture) {
+        let particlesNumber = { value: 128 }
+        const geometry = new THREE.PlaneGeometry(2, 2, particlesNumber.value, particlesNumber.value)
+        geometry.setIndex(null)
+        geometry.deleteAttribute("normal")
+        
+        texture.colorSpace = THREE.SRGBColorSpace
 
-
-        for (let i = 0; i < count; i++) {
-            const i3 = i * 3;
-
-            const spherical = new THREE.Spherical(
-                radius * 0.75 + Math.random() * 0.25,
-                Math.random() * Math.PI,
-                Math.random() * Math.PI * 2
-            );
-            const pos = new THREE.Vector3();
-            pos.setFromSpherical(spherical);
-
-            positionArray[i3 + 0] = pos.x;
-            positionArray[i3 + 1] = pos.y;
-            positionArray[i3 + 2] = pos.z;
-
-            sizeArray[i] = Math.random();
-            timeMultipliers[i] = 1 + Math.random();
-        }
-
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positionArray, 3));
-        geometry.setAttribute('aSize', new THREE.Float32BufferAttribute(sizeArray, 1));
-        geometry.setAttribute('aTimeMultipliers', new THREE.Float32BufferAttribute(timeMultipliers, 1));
-
-        texture.flipY = false;
         const material = new THREE.ShaderMaterial({
             vertexShader: fireworkVertexShader,
             fragmentShader: fireworkFragmentShader,
-            uniforms: {
-                uSize: new THREE.Uniform(size * this._fireworkSettings.particlesSize),
+            uniforms:
+            {
                 uResolution: new THREE.Uniform(this._window.resolution),
-                uTexture: new THREE.Uniform(texture),
-                uColor: new THREE.Uniform(color),
+                uColor: new THREE.Uniform( new THREE.Color(this._fireworkSettings.color as string) ),
+                uColorMixFactor: new THREE.Uniform( this._fireworkSettings.colorMixFactor ),
+                uActiveColor: new THREE.Uniform(this._fireworkSettings.activeColor),
+                uPictureTexture: new THREE.Uniform(texture),
                 uProgress: new THREE.Uniform(0),
-
-                // explosion
-                uRemapOriginMin: new THREE.Uniform(this._fireworkSettings.remapOriginMin),
-                uRemapOriginMax: new THREE.Uniform(this._fireworkSettings.remapOriginMax),
-                uRemapDestinationMin: new THREE.Uniform(this._fireworkSettings.remapOriginMin),
-                uRemapDestinationMax: new THREE.Uniform(this._fireworkSettings.remapOriginMax),
-                uClampMin: new THREE.Uniform(this._fireworkSettings.clampMin),
-                uClampMax: new THREE.Uniform(this._fireworkSettings.clampMax),
-                uRadiusMultiplier: new THREE.Uniform(this._fireworkSettings.radiusMultiplier),
-
-                // fall
-                uFallRemapOriginMin: new THREE.Uniform(this._fireworkSettings.fallingRemapOriginMin),
-                uFallRemapOriginMax: new THREE.Uniform(this._fireworkSettings.fallingRemapOriginMax),
-                uFallRemapDestinationMin: new THREE.Uniform(this._fireworkSettings.fallingRemapDestinationMin),
-                uFallRemapDestinationMax: new THREE.Uniform(this._fireworkSettings.fallingRemapDestinationMax),
-                uFallClampMin: new THREE.Uniform(this._fireworkSettings.fallingClampMin),
-                uFallClampMax: new THREE.Uniform(this._fireworkSettings.fallingClampMax),
-                uFallingMultiplier: new THREE.Uniform(this._fireworkSettings.fallingMultiplier),
-
-                // scale
-                uOpeningRemapOriginMin: new THREE.Uniform(this._fireworkSettings.openingRemapOriginMin),
-                uOpeningRemapOriginMax: new THREE.Uniform(this._fireworkSettings.openingRemapOriginMax),
-                uOpeningRemapDestinationMin: new THREE.Uniform(this._fireworkSettings.openingRemapDestinationMin),
-                uOpeningRemapDestinationMax: new THREE.Uniform(this._fireworkSettings.openingRemapDestinationMax),
-                uClosingRemapOriginMin: new THREE.Uniform(this._fireworkSettings.closingRemapOriginMin),
-                uClosingRemapOriginMax: new THREE.Uniform(this._fireworkSettings.closingRemapOriginMax),
-                uClosingRemapDestinationMin: new THREE.Uniform(this._fireworkSettings.closingRemapDestinationMin),
-                uClosingRemapDestinationMax: new THREE.Uniform(this._fireworkSettings.closingRemapDestinationMax),
-                uScaleMultiplier: new THREE.Uniform(this._fireworkSettings.scalingMultiplier),
-
-                // twinkle
-                uTwinkleRemapOriginMin: new THREE.Uniform(this._fireworkSettings.twinkleRemapOriginMin),
-                uTwinkleRemapOriginMax: new THREE.Uniform(this._fireworkSettings.twinkleRemapOriginMax),
-                uTwinkleRemapDestinationMin: new THREE.Uniform(this._fireworkSettings.twinkleRemapDestinationMin),
-                uTwinkleRemapDestinationMax: new THREE.Uniform(this._fireworkSettings.twinkleRemapDestinationMax),
-                uTwinkleClampMin: new THREE.Uniform(this._fireworkSettings.twinkleClampMin),
-                uTwinkleClampMax: new THREE.Uniform(this._fireworkSettings.twinkleClampMax),
-                uTwinkleFrequency: new THREE.Uniform(this._fireworkSettings.twinkleFrequency),
+                uPictureIntensityMul: new THREE.Uniform(2),
             },
             depthWrite: false,
-            blending: THREE.AdditiveBlending,
-            transparent: true,
-        });
+            transparent: true
+        })
+        let firework = new THREE.Points(geometry, material)
 
-        const firework = new THREE.Points(geometry, material);
         firework.position.copy(position);
         this.scene.add(firework);
 
@@ -317,40 +277,31 @@ export class DefaultFireworkStrategy extends AbstractFireworkStrategy {
         const duration = this._fireworkSettings.duration;
         gsap.to(material.uniforms.uProgress, {
             value: 1,
-            duration: duration,
+            duration: duration as number,
             ease: "linear",
             onComplete: destroy,
         });
     }
 
     private _createRandomFirework = () => {
-        const count = Math.round(400 + Math.random() * 1000);
         const position = new THREE.Vector3(
             (Math.random() - 0.5) * 10,
             Math.random() * 2,
             (Math.random() - 0.5) * 10,
         )
-        const size = 0.1 + Math.random() * 0.1;
         const texture = this._textures[Math.floor(Math.random() * this._textures.length)]
-        const radius = 0.5 + Math.random()
-        const color = new THREE.Color()
-        color.setHSL(Math.random(), 1, 0.7);
-        this._createFirework(count, position, size, texture, radius, color);
+
+        this._createFirework(position, texture);
     }
 
     private _createMouseFirework = () => {
-        const count = Math.round(400 + Math.random() * 1000);
         const raycaster = new THREE.Raycaster(); 
         raycaster.setFromCamera(this._mouse, this.context.world.camera);
         const distance = 50; // Get an arbitrary point on the ray at a specific distance from the camera
         const arbitraryPoint = raycaster.ray.at(Math.random() * distance, new THREE.Vector3());
-        const size = 0.1 + Math.random() * 0.1;
-        const texture = this._textures[Math.floor(Math.random() * this._textures.length)]
-        const radius = 0.5 + Math.random()
-        const color = new THREE.Color()
-        color.setHSL(Math.random(), 1, 0.7);
+        const texture = this._textures[1]
 
-        this._createFirework(count, arbitraryPoint, size, texture, radius, color);
+        this._createFirework(arbitraryPoint, texture);
     }
 
 
@@ -389,3 +340,5 @@ export class DefaultFireworkStrategy extends AbstractFireworkStrategy {
         if ( this.mode === FireworkMode.MOUSE ) this._createMouseFirework()
     }
 }
+
+export default ImageFireworkStrategy
