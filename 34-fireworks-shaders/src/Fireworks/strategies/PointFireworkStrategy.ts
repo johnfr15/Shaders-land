@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import GUI from 'lil-gui';
 import AbstractFireworkStrategy from './AbstractFireworkStrategy';
-import { FireworkMode } from '../types.ts';
+import { FireworkMode, Options } from '../types.ts';
 import fireworkVertexShader from "../shaders/point/vertex.glsl";
 import fireworkFragmentShader from "../shaders/point/fragment.glsl";
 import Firework from '../Firework';
@@ -18,6 +18,7 @@ import Firework from '../Firework';
 class PointFireworkStrategy extends AbstractFireworkStrategy {
     private _fireworkSettings!: {[key: string]: number | string | boolean}
     private _gui!: GUI;
+    public name: string;
 
 
 
@@ -26,9 +27,11 @@ class PointFireworkStrategy extends AbstractFireworkStrategy {
     /***********************************|
     |            CONSTRUCTOR            |
     |__________________________________*/
-    constructor(context: Firework) 
+    constructor(context: Firework, options: Options = {}) 
     {
         super(context)
+
+        this.name = options.name || "Point firework strategy"
 
         this._initSettings();
         this._initGui();
@@ -83,7 +86,7 @@ class PointFireworkStrategy extends AbstractFireworkStrategy {
 
     private _initGui(): void 
     {
-        this._gui = this._GUI.addFolder("Default firework").close()
+        this._gui = this._GUI.addFolder(this.name).close();
         this._gui.add( this._fireworkSettings, 'particlesSize').min(0).max(100).step(0.1)
         this._gui.add( this._fireworkSettings, 'randomParticlesColor')
         this._gui.addColor( this._fireworkSettings, 'particlesColor').onChange((c: any) => this._fireworkSettings.particlesColor = c)
@@ -301,11 +304,15 @@ class PointFireworkStrategy extends AbstractFireworkStrategy {
     public turnOn = (): void => 
     {
         super.turnOn();   
+
+        this._gui.open();
     }
 
     public turnOff = (): void => 
     {
         super.turnOn();
+
+        this._gui.close();
     }
 
     public changeMode = (mode: FireworkMode): void => 

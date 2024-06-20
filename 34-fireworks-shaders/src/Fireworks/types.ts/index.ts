@@ -1,5 +1,10 @@
 import * as THREE from 'three';
 
+export type Options = {
+    name?: string,
+    textures?: THREE.Texture[]
+}
+
 export type Window = {
     width: number
     height: number

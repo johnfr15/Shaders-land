@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import GUI from 'lil-gui';
 import AbstractFireworkStrategy from './AbstractFireworkStrategy.ts';
-import { FireworkMode } from '../types.ts/index.ts';
+import { FireworkMode, Options } from '../types.ts/index.ts';
 import fireworkVertexShader from "../shaders/image/vertex.glsl";
 import fireworkFragmentShader from "../shaders/image/fragment.glsl";
 import Firework from '../Firework.ts';
@@ -29,6 +29,7 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
     private _fireworkSettings!: {[key: string]: number | string | boolean}
     private _textures!: THREE.Texture[];
     private _gui!: GUI;
+    public name: string;
 
 
 
@@ -37,9 +38,12 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
     /***********************************|
     |            CONSTRUCTOR            |
     |__________________________________*/
-    constructor(context: Firework) 
+    constructor(context: Firework, options: Options = {}) 
     {
-        super(context)
+        super(context);
+
+        this.name = options.name || "Image firework strategy";
+        this._textures = options.textures || [];
 
         this._initSettings();
         this._initGui();
@@ -90,7 +94,7 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
 
     private _initGui(): void 
     {
-        this._gui = this._GUI.addFolder("Cat firework").close()
+        this._gui = this._GUI.addFolder(this.name).close()
         this._gui.add( this._fireworkSettings, 'particlesSize').min(0).max(100).step(0.1)
         this._gui.add( this._fireworkSettings, 'activeColor')
         this._gui.addColor( this._fireworkSettings, 'color').onChange((c: any) => this._fireworkSettings.color = c)
@@ -143,18 +147,21 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
     {
         const textureLoader = new THREE.TextureLoader();
 
-        this._textures = [
-            textureLoader.load(defaultImage1),
-            textureLoader.load(defaultImage2),
-            textureLoader.load(defaultImage3),
-            textureLoader.load(defaultImage4),
-            textureLoader.load(defaultImage5),
-            textureLoader.load(defaultImage6),
-            textureLoader.load(defaultImage7),
-            textureLoader.load(defaultImage8),
-            textureLoader.load(defaultImage9),
-            textureLoader.load(defaultImage10),
-        ]
+        if (this._textures.length === 0)
+        {
+            this._textures = [
+                textureLoader.load(defaultImage1),
+                textureLoader.load(defaultImage2),
+                textureLoader.load(defaultImage3),
+                textureLoader.load(defaultImage4),
+                textureLoader.load(defaultImage5),
+                textureLoader.load(defaultImage6),
+                textureLoader.load(defaultImage7),
+                textureLoader.load(defaultImage8),
+                textureLoader.load(defaultImage9),
+                textureLoader.load(defaultImage10),
+            ]
+        }
     }
 
 
@@ -296,11 +303,15 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
     public turnOn = (): void => 
     {
         super.turnOn();
+
+        this._gui.open();
     }
 
     public turnOff = (): void => 
     {
         super.turnOff();
+
+        this._gui.close();
     }
 
     public changeMode = (mode: FireworkMode): void => 

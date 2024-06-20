@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import GUI from 'lil-gui';
 import AbstractFireworkStrategy from './AbstractFireworkStrategy.ts';
-import { FireworkMode } from '../types.ts/index.ts';
+import { FireworkMode, Options } from '../types.ts/index.ts';
 import fireworkVertexShader from "../shaders/particle/vertex.glsl";
 import fireworkFragmentShader from "../shaders/particle/fragment.glsl";
 import Firework from '../Firework.ts';
@@ -27,6 +27,7 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
     private _fireworkSettings!: {[key: string]: number}
     private _textures!: THREE.Texture[];
     private _gui!: GUI;
+    public name: string
 
 
 
@@ -35,9 +36,12 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
     /***********************************|
     |            CONSTRUCTOR            |
     |__________________________________*/
-    constructor(context: Firework) 
+    constructor(context: Firework, options: Options = {}) 
     {
         super(context)
+
+        this.name = options.name || "Particles firework strategy";
+        this._textures = options.textures || [];
 
         this._initSettings();
         this._initGui();
@@ -90,7 +94,7 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
 
     private _initGui(): void 
     {
-        this._gui = this._GUI.addFolder("Default firework").close()
+        this._gui = this._GUI.addFolder(this.name).close()
         this._gui.add( this._fireworkSettings, 'particlesSize').min(0).max(100).step(0.1)
         this._gui.add( this._fireworkSettings, 'duration').min(0).max(30).step(0.1)
         this._gui.add( this, 'mode', ['Random', 'Mouse']).name("Modes").onChange((m: string) => {
@@ -145,16 +149,19 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
     {
         const textureLoader = new THREE.TextureLoader();
 
-        this._textures = [
-            textureLoader.load(particles1),
-            textureLoader.load(particles2),
-            textureLoader.load(particles3),
-            textureLoader.load(particles4),
-            textureLoader.load(particles5),
-            textureLoader.load(particles6),
-            textureLoader.load(particles7),
-            textureLoader.load(particles8),
-        ]
+        if (this._textures.length === 0)
+        {
+            this._textures = [
+                textureLoader.load(particles1),
+                textureLoader.load(particles2),
+                textureLoader.load(particles3),
+                textureLoader.load(particles4),
+                textureLoader.load(particles5),
+                textureLoader.load(particles6),
+                textureLoader.load(particles7),
+                textureLoader.load(particles8),
+            ]
+        }
     }
 
 
@@ -318,11 +325,15 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
     public turnOn = (): void => 
     {
         super.turnOn();
+
+        this._gui.open();
     }
 
     public turnOff = (): void => 
     {
         super.turnOff();
+
+        this._gui.close();
     }
 
     public changeMode = (mode: FireworkMode): void => 
