@@ -332,7 +332,7 @@ class PointFireworkStrategy extends AbstractFireworkStrategy {
 
         const count = Math.round(400 + Math.random() * 1000);
         const raycaster = new THREE.Raycaster(); 
-        raycaster.setFromCamera(this._mouseCoord, this.context.world.camera);
+        raycaster.setFromCamera(this._mouseCoord, this.camera);
         const distance = 50; // Get an arbitrary point on the ray at a specific distance from the camera
         const arbitraryPoint = raycaster.ray.at(Math.random() * distance, new THREE.Vector3());
         const size = 0.1 + Math.random() * 0.1;

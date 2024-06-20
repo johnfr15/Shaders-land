@@ -1,11 +1,14 @@
+import * as THREE from "three";
 import IFireworkStrategy from './IFireworkStrategy';
+import { FireworkMode } from '../types.ts';
 import GUI from "lil-gui";
-import { World, FireworkMode } from '../types.ts';
 
 interface IFirework {
     defaultStrategy: IFireworkStrategy;
-    world: World
-    gui: GUI
+    scene: THREE.Scene;
+    camera: THREE.PerspectiveCamera;
+    gui: GUI;
+
 
     changeStrategy(strategy: IFireworkStrategy): void;
     changeMode(mode: FireworkMode): void;

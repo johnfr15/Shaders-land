@@ -1,21 +1,26 @@
+import * as THREE from "three";
 import IFireworkStrategy from './interfaces/IFireworkStrategy';
 import IFirework from "./interfaces/IFirework";
-import { World, FireworkMode } from './types.ts';
+import { FireworkMode } from './types.ts';
 import ParticlesFireworkStrategy from './strategies/ParticlesFireworkStrategy.ts';
 import GUI from "lil-gui";
+
+
 
 
 class Firework implements IFirework {
     private _strategy: IFireworkStrategy;
     public defaultStrategy: IFireworkStrategy;
-    public world: World
-    public gui: GUI
-    
+    public scene: THREE.Scene;
+    public camera: THREE.PerspectiveCamera;
+    public gui: GUI;
 
     
-    constructor(world: World, gui?: GUI) 
+
+    constructor(scene: THREE.Scene, camera: THREE.PerspectiveCamera, gui?: GUI) 
     {
-        this.world = world
+        this.scene = scene
+        this.camera = camera
         this.gui = gui || new GUI({ width: 340 })
 
         this.defaultStrategy = new ParticlesFireworkStrategy(this);

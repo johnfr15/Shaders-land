@@ -170,17 +170,19 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
 
     private _loadTextures() 
     {
+        const textureLoader = new THREE.TextureLoader();
+
         this._textures = [
-            this.textureLoader.load(defaultImage1),
-            this.textureLoader.load(defaultImage2),
-            this.textureLoader.load(defaultImage3),
-            this.textureLoader.load(defaultImage4),
-            this.textureLoader.load(defaultImage5),
-            this.textureLoader.load(defaultImage6),
-            this.textureLoader.load(defaultImage7),
-            this.textureLoader.load(defaultImage8),
-            this.textureLoader.load(defaultImage9),
-            this.textureLoader.load(defaultImage10),
+            textureLoader.load(defaultImage1),
+            textureLoader.load(defaultImage2),
+            textureLoader.load(defaultImage3),
+            textureLoader.load(defaultImage4),
+            textureLoader.load(defaultImage5),
+            textureLoader.load(defaultImage6),
+            textureLoader.load(defaultImage7),
+            textureLoader.load(defaultImage8),
+            textureLoader.load(defaultImage9),
+            textureLoader.load(defaultImage10),
         ]
     }
 
@@ -332,7 +334,7 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
 
     private _createMouseFirework = () => {
         const raycaster = new THREE.Raycaster(); 
-        raycaster.setFromCamera(this._mouse, this.context.world.camera);
+        raycaster.setFromCamera(this._mouse, this.camera);
         const distance = 50; // Get an arbitrary point on the ray at a specific distance from the camera
         const arbitraryPoint = raycaster.ray.at(Math.random() * distance, new THREE.Vector3());
         const texture = this._textures[Math.floor(Math.random() * this._textures.length)]
