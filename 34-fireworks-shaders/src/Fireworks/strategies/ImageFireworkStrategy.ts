@@ -288,6 +288,13 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
         this._createFirework(arbitraryPoint, texture);
     }
 
+    private _createArbitraryFirework = (position: THREE.Vector3) => {
+        const texture = this._textures[Math.floor(Math.random() * this._textures.length)]
+        const color = new THREE.Color()
+        color.setHSL(Math.random(), 1, 0.7);
+
+        this._createFirework(position, texture);
+    }
 
 
 
@@ -319,8 +326,14 @@ class ImageFireworkStrategy extends AbstractFireworkStrategy {
         super.changeMode(mode);
     };
 
-    public trigger = () => 
+    public trigger = (pos?: THREE.Vector3) => 
     {
+        if (pos) 
+        { 
+            this._createArbitraryFirework(pos) 
+            return 
+        }
+
         if ( this._mode === FireworkMode.RANDOM ) this._createRandomFirework()
         if ( this._mode === FireworkMode.MOUSE ) this._createMouseFirework()
     }

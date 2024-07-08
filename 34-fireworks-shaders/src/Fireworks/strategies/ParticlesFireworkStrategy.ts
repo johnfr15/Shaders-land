@@ -310,6 +310,16 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
         this._createFirework(count, arbitraryPoint, size, texture, radius, color);
     }
 
+    private _createArbitraryFirework = (position: THREE.Vector3) => {
+        const count = Math.round(400 + Math.random() * 1000);
+        const size = 0.1 + Math.random() * 0.1;
+        const texture = this._textures[Math.floor(Math.random() * this._textures.length)]
+        const radius = 0.5 + Math.random()
+        const color = new THREE.Color()
+        color.setHSL(Math.random(), 1, 0.7);
+
+        this._createFirework(count, position, size, texture, radius, color);
+    }
 
 
 
@@ -341,11 +351,18 @@ class ParticlesFireworkStrategy extends AbstractFireworkStrategy {
         super.changeMode(mode);
     };
 
-    public trigger = () => 
+    public trigger = (pos?: THREE.Vector3) => 
     {
+        if (pos) 
+        { 
+            this._createArbitraryFirework(pos) 
+            return 
+        }
         if ( this._mode === FireworkMode.RANDOM ) this._createRandomFirework()
         if ( this._mode === FireworkMode.MOUSE ) this._createMouseFirework()
     }
+
+
 }
 
 export default ParticlesFireworkStrategy

@@ -42,9 +42,13 @@ class Firework implements IFirework {
         this._strategy.changeMode( mode );
     }
 
-    public trigger = () => 
+    public trigger = (pos?: [number,number,number]) => 
     {
-        this._strategy.trigger();
+        if (pos && Array.isArray(pos) && pos.length === 3 && pos.every(element => typeof element === 'number')) {
+            this._strategy.trigger(new THREE.Vector3(pos[0], pos[1], pos[2]));
+        } else {
+            this._strategy.trigger();
+        }
     }
 }
 
