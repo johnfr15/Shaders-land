@@ -93,20 +93,18 @@ const myParticlesTextures = [
  * Firework
  */
 
-
-gui.add({particles: () => firework.changeStrategy(firework.defaultStrategy)}, "particles")
-gui.add({points: () => firework.changeStrategy(pointStrategy)}, "points")
-gui.add({images: () => firework.changeStrategy(catStrategy)}, "images")
-
 // Set up context
 const firework = new Firework(scene, camera, gui)
+gui.add({particles: () => firework.changeStrategy(firework.defaultStrategy)}, "particles")
 window.firework = firework
 window.addEventListener("click", firework.trigger)
 
 // Set up Point strategy
 const pointStrategy = new PointFireworkStrategy(firework)
+gui.add({points: () => firework.changeStrategy(pointStrategy)}, "points")
 // Set up Cat strategy
 const catStrategy = new ImageFireworkStrategy(firework)
+gui.add({cats: () => firework.changeStrategy(catStrategy)}, "cats")
 
 // My strategy
 const myImageStrategy = new ImageFireworkStrategy(firework, { textures: myImageTextures, name: "john-gotchi" })
